@@ -57,7 +57,7 @@ Linklet/
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/your-username/linklet.git
+git clone https://github.com/sahed-hossen/linklet.git
 cd linklet
 pip install -r backend/requirements.txt
 ```
