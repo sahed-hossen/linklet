@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: linklet
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: false   # Set this manually in the Render dashboard (your Supabase URI)
+      - key: PYTHON_VERSION
+        value: 3.12.0
