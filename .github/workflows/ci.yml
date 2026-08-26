@@ -39,8 +39,15 @@ jobs:
 
     steps:
       - name: Trigger Render Deploy Hook
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          curl -fsSL -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret is not set."
+            echo "Skipping deploy webhook trigger (Render automatically deploys on push if connected to GitHub)."
+            exit 0
+          fi
+          curl -fsSL -X POST "$RENDER_DEPLOY_HOOK_URL" \
             -o /dev/null \
             -w "HTTP Status: %{http_code}\n"
           echo "Deploy triggered successfully!"
