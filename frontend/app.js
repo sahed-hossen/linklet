@@ -3,6 +3,17 @@ const API_BASE = window.location.origin;
 let linksCache = [];
 let lastCreatedShortUrl = "";
 
+function getClientId() {
+    let clientId = localStorage.getItem("linklet_client_id");
+    if (!clientId) {
+        clientId = (typeof crypto !== "undefined" && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : "c_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        localStorage.setItem("linklet_client_id", clientId);
+    }
+    return clientId;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const savedTheme = localStorage.getItem("linklet_theme") || "dark";
     setTheme(savedTheme);
@@ -28,7 +39,9 @@ document.addEventListener("DOMContentLoaded", () => {
 async function fetchLinks() {
     const tbody = document.getElementById("links-tbody");
     try {
-        const res = await fetch(`${API_BASE}/api/links`);
+        const res = await fetch(`${API_BASE}/api/links`, {
+            headers: { "X-Client-Id": getClientId() }
+        });
         if (!res.ok) throw new Error();
         linksCache = await res.json();
         renderLinks(linksCache);
@@ -123,7 +136,10 @@ async function handleShorten(event) {
 
         const res = await fetch(`${API_BASE}/shorten`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "X-Client-Id": getClientId()
+            },
             body: JSON.stringify(payload)
         });
 
@@ -165,7 +181,10 @@ async function deleteLink(code) {
     if (!confirm(`Deactivate /${code}?`)) return;
 
     try {
-        const res = await fetch(`${API_BASE}/api/links/${code}`, { method: "DELETE" });
+        const res = await fetch(`${API_BASE}/api/links/${code}`, {
+            method: "DELETE",
+            headers: { "X-Client-Id": getClientId() }
+        });
         if (res.ok) {
             showToast(`/${code} deactivated`);
             fetchLinks();
@@ -202,7 +221,9 @@ function closeQrModal() {
 
 async function openAnalyticsModal(code) {
     try {
-        const res = await fetch(`${API_BASE}/api/links/${code}/stats`);
+        const res = await fetch(`${API_BASE}/api/links/${code}/stats`, {
+            headers: { "X-Client-Id": getClientId() }
+        });
         if (!res.ok) throw new Error();
         const stats = await res.json();
 

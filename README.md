@@ -10,6 +10,7 @@ A modern, lightweight URL shortener built with **FastAPI** and **Supabase (Postg
 ## ✨ Features
 
 - **Instant URL Shortening** — Generates clean Base62 7-character IDs or custom aliases (up to 10 chars)
+- **Private Device History** — Isolated link management and history scoped per device session
 - **Click & Referrer Tracking** — Logs timestamped click metrics and referrer domains per link
 - **Link Expiration & Deactivation** — Scheduled expiry timestamps and one-click soft deactivation
 - **Dynamic QR Code Generation** — In-browser QR rendering with high-resolution canvas output
@@ -53,7 +54,7 @@ linklet/
 │   └── app.js              # Async API client
 └── tests/
     ├── conftest.py         # Shared pytest fixtures (clean_db, SQLite override)
-    └── test_api.py         # Full API test suite (8 tests)
+    └── test_api.py         # Full API test suite (9 tests)
 ```
 
 ---
@@ -122,9 +123,9 @@ py -m pytest tests/ -v
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/shorten` | Shorten a URL (`long_url`, optional `custom_alias`, optional `expires_at`) |
+| `POST` | `/shorten` | Shorten a URL (`long_url`, optional `custom_alias`, optional `expires_at`, `X-Client-Id` header) |
 | `GET` | `/{short_code}` | Redirect to destination + log click & referrer |
-| `GET` | `/api/links` | List all links with click counts and status |
+| `GET` | `/api/links` | List caller device's links (`X-Client-Id` header) |
 | `GET` | `/api/links/{code}/stats` | Full analytics + 100 most recent clicks |
 | `DELETE` | `/api/links/{code}` | Soft-deactivate a link (`is_active = false`) |
 

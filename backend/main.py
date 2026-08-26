@@ -159,9 +159,11 @@ def shorten_url(payload: ShortenRequest, request: Request, db: Session = Depends
         if not code:
             raise HTTPException(status_code=500, detail="Could not generate a unique code")
 
+    client_id = request.headers.get("x-client-id")
     expires = payload.expires_at.replace(tzinfo=None) if payload.expires_at else None
     link = URL(
         short_code=code,
+        client_id=client_id,
         long_url=payload.long_url,
         created_at=get_now(),
         expires_at=expires,
@@ -183,7 +185,10 @@ def shorten_url(payload: ShortenRequest, request: Request, db: Session = Depends
 
 @app.get("/api/links", response_model=List[LinkResponse])
 def list_links(request: Request, db: Session = Depends(get_db)):
-    links = db.query(URL).order_by(desc(URL.created_at)).all()
+    client_id = request.headers.get("x-client-id")
+    if not client_id:
+        return []
+    links = db.query(URL).filter(URL.client_id == client_id).order_by(desc(URL.created_at)).all()
     return [serialize_link(request, l) for l in links]
 
 
@@ -213,8 +218,12 @@ def get_link_stats(short_code: str, request: Request, db: Session = Depends(get_
 
 
 @app.delete("/api/links/{short_code}")
-def delete_link(short_code: str, db: Session = Depends(get_db)):
-    link = db.query(URL).filter(URL.short_code == short_code).first()
+def delete_link(short_code: str, request: Request, db: Session = Depends(get_db)):
+    client_id = request.headers.get("x-client-id")
+    query = db.query(URL).filter(URL.short_code == short_code)
+    if client_id:
+        query = query.filter((URL.client_id == client_id) | (URL.client_id.is_(None)))
+    link = query.first()
     if not link:
         raise HTTPException(status_code=404, detail="Link not found")
     link.is_active = False

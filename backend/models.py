@@ -12,6 +12,7 @@ class URL(Base):
     __tablename__ = "urls"
 
     short_code = Column(String(10), primary_key=True, index=True)
+    client_id = Column(String(64), nullable=True, index=True)
     long_url = Column(Text, nullable=False)
     created_at = Column(DateTime, default=utcnow, nullable=False)
     expires_at = Column(DateTime, nullable=True)
