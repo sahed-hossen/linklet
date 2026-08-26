@@ -1,30 +1,14 @@
-import os
-import sys
+"""
+API tests for Linklet URL shortener.
+Fixtures (clean_db, sys.path setup, TEST_DATABASE_URL) live in conftest.py.
+"""
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
-import pytest
 from fastapi.testclient import TestClient
 
-backend_dir = Path(__file__).resolve().parent.parent / "backend"
-sys.path.insert(0, str(backend_dir))
-
-# Use an in-memory SQLite DB for tests so they don't need Supabase credentials
-os.environ.setdefault("TEST_DATABASE_URL", "sqlite:///./test_shortener.db")
-
-from database import Base, engine
 from main import app
 
 client = TestClient(app, follow_redirects=False)
-
-
-@pytest.fixture(autouse=True)
-def clean_db():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
 
 
 def test_shorten_valid_url():
